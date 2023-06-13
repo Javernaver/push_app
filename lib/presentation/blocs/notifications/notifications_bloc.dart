@@ -28,7 +28,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   NotificationsBloc() : super(const NotificationsState()) {
     on<NotificationStatusChanged>(_notificationStatusChanged);
 
-    // TODO: _onPushMessageRecived
     on<NotificationReceived>(_onPushMessageRecived);
     // verificar estado de las notificaciones
     _initialStatusCheck();
@@ -68,7 +67,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     logger.d('Token: $token');
   }
 
-  void _handleRemoteMessage(RemoteMessage message) {
+  void handleRemoteMessage(RemoteMessage message) {
     logger.d('Meesage data: ${message.data}');
 
     if (message.notification == null) return;
@@ -92,7 +91,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void _onForegroundMessage() {
-    FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
+    FirebaseMessaging.onMessage.listen(handleRemoteMessage);
   }
 
   void requestPermissions() async {
@@ -107,5 +106,12 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     );
     // Mandar el evento de cambio de estado
     add(NotificationStatusChanged(settings.authorizationStatus));
+  }
+
+  PushMessage? getMessageById(String id) {
+    final exists =
+        state.notifications.any((element) => element.messageId == id);
+    if (!exists) return null;
+    return state.notifications.firstWhere((element) => element.messageId == id);
   }
 }
